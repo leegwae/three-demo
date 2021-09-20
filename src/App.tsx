@@ -1,26 +1,16 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Canvas } from '@react-three/fiber';
+import { Box } from './components';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	return (
+		<Canvas>
+			<ambientLight />
+			<pointLight position={[10, 10, 10]} />
+			<Box position={[-1.2, 0, 3]} />
+			<Box position={[1.2, 0, 3]} />
+		</Canvas>
+	);
 }
 
 export default App;
