@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
 import * as THREE from 'three';
+import React, { useRef } from 'react';
 import { useThree, useFrame, RootState } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 
 // control camera
-interface CameraControlsProps { target: THREE.Vector3 }
+interface CameraControlsProps { target: THREE.Vector3; }
 const CameraControls = ({ target }: CameraControlsProps) => {
 	// get reference of OribinControls
 	const controls = useRef<any>();			// type 찾기
