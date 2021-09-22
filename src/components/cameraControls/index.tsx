@@ -24,7 +24,7 @@ const CameraControls = ({ target }: CameraControlsProps) => {
 			ref={controls}
 			args={[camera, domElement]}
 			enablePan={false}
-			enableZoom={false}
+			enableZoom={true}
 			target={targetClone}
 		/>
 	);	

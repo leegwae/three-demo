@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import React, { useRef, ReactFragment } from 'react';
+import React, { useRef, ReactFragment, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { CameraControls, Cube, Plane } from './components';
+import { CameraControls, Cube, Plane, Model } from './components';
 
 // 카메라 설정 관련 상수
 const SCREEN_WIDTH: number = window.innerWidth;
@@ -41,7 +41,6 @@ const Scene = ({ children }: SceneProps) => (
 );
 
 const App = () => {
-	const cubeMesh = useRef<THREE.Mesh>();
 	const planeMesh = useRef<THREE.Mesh>();
 
 	return (
@@ -61,7 +60,9 @@ const App = () => {
 				shadows
 			>
 				<Scene>
-					<Cube ref={cubeMesh} position={ORIGIN} args={[1, 1, 1]} />
+					<Suspense fallback={null}>
+						<Model position={new THREE.Vector3(0, -0.5, 0)} />
+					</Suspense>
 					<Plane
 						ref={planeMesh}
 						position={new THREE.Vector3(0, -1, 0)}
