@@ -20,18 +20,49 @@ type GLTFResult = GLTF & {
 	}
 }
 
-type ActionName = 'agree' | 'headShake' | 'idle' | 'run' | 'sad_pose' | 'sneak_pose' | 'walk'
-type GLTFActions = Record<ActionName, THREE.AnimationAction>
+type ActionName = 'agree' | 'headShake' | 'idle' | 'run' | 'sad_pose' | 'sneak_pose' | 'walk';
+type GLTFActions = Record<ActionName, THREE.AnimationAction>;
+
+const NAME_SPINE: string = 'mixamorigSpine';
+const NAME_NECK: string = 'mixamorigNeck';
+
+const getIndexesOfBone = (bone: string, tracks: THREE.KeyframeTrack[]) => {
+	const indexes: number[] = [];
+	tracks.forEach((track, idx) => {
+		if (track.name.indexOf(bone) !== -1) {
+			indexes.push(idx);
+		};
+	});
+
+	return indexes;
+};
 
 export default function Model(props: JSX.IntrinsicElements['group']) {
 	const group = useRef<THREE.Group>();
 	const { nodes, materials, animations, scene } = useGLTF('/Xbot.glb') as GLTFResult;
 	const { actions } = useAnimations<THREE.AnimationClip>(animations, group);
 	
-	// console.log(nodes.Beta_Joints.skeleton.bones.map(bone => bone.position));
-	// console.log(nodes.Beta_Surface.skeleton.bones.map(bone => bone.position));
+	// get bones of neck and waist
+	let neck: THREE.Bone;
+	let waist: THREE.Bone;
+
+	nodes.Beta_Surface.skeleton.bones.forEach(bone => {
+		if (bone.name === NAME_NECK) neck = bone;
+		if (bone.name === NAME_SPINE) waist = bone;
+	});
+
+	// get index of track by name of bone
+	const idleAnimation = THREE.AnimationClip.findByName(animations, 'idle');
+	let indexes_neck: number[] = getIndexesOfBone(NAME_NECK, idleAnimation.tracks);
+	let indexes_waist: number[] = getIndexesOfBone(NAME_SPINE, idleAnimation.tracks);
+	console.log(indexes_neck.map(index => idleAnimation.tracks[index]))
+	console.log(indexes_neck)
+
+	idleAnimation.tracks.splice(indexes_neck[0], indexes_neck.length);
+	idleAnimation.tracks.splice(indexes_waist[0] - indexes_neck.length, indexes_waist.length);
+
 	useEffect(() => {
-		actions.walk?.play();
+		actions.idle?.play();
 	});
 
 	return (

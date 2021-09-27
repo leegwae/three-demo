@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import React, { useRef, ReactFragment, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { CameraControls, Cube, Plane, Model } from './components';
+import { CameraControls, Plane, Model } from './components';
 
 // 카메라 설정 관련 상수
 const SCREEN_WIDTH: number = window.innerWidth;
