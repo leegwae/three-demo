@@ -7,6 +7,7 @@ import React, { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import { getMousePosition, moveJoint } from '../../functions';
 
 type GLTFResult = GLTF & {
 	nodes: {
@@ -20,13 +21,13 @@ type GLTFResult = GLTF & {
 	}
 }
 
-type ActionName = 'agree' | 'headShake' | 'idle' | 'run' | 'sad_pose' | 'sneak_pose' | 'walk';
-type GLTFActions = Record<ActionName, THREE.AnimationAction>;
+// type ActionName = 'agree' | 'headShake' | 'idle' | 'run' | 'sad_pose' | 'sneak_pose' | 'walk';
+// type GLTFActions = Record<ActionName, THREE.AnimationAction>;
 
 const NAME_SPINE: string = 'mixamorigSpine';
 const NAME_NECK: string = 'mixamorigNeck';
 
-const getIndexesOfBone = (bone: string, tracks: THREE.KeyframeTrack[]) => {
+const getIndexesOfBonesFromTracks = (bone: string, tracks: THREE.KeyframeTrack[]) => {
 	const indexes: number[] = [];
 	tracks.forEach((track, idx) => {
 		if (track.name.indexOf(bone) !== -1) {
@@ -38,31 +39,45 @@ const getIndexesOfBone = (bone: string, tracks: THREE.KeyframeTrack[]) => {
 };
 
 export default function Model(props: JSX.IntrinsicElements['group']) {
+	// reference of model
 	const group = useRef<THREE.Group>();
-	const { nodes, materials, animations, scene } = useGLTF('/Xbot.glb') as GLTFResult;
+	// get elements of GLTF file
+	const { nodes, materials, animations } = useGLTF('/Xbot.glb') as GLTFResult;
+	// get actions from animations
 	const { actions } = useAnimations<THREE.AnimationClip>(animations, group);
-	
-	// get bones of neck and waist
+
+	// Bone object of neck and waist
 	let neck: THREE.Bone;
 	let waist: THREE.Bone;
 
-	nodes.Beta_Surface.skeleton.bones.forEach(bone => {
-		if (bone.name === NAME_NECK) neck = bone;
-		if (bone.name === NAME_SPINE) waist = bone;
+	// get bones of neck and waist
+	nodes.Beta_Joints.skeleton.bones.forEach(joint => {
+		if (joint.name === NAME_NECK) neck = joint;
+		if (joint.name === NAME_SPINE) waist = joint;
 	});
 
 	// get index of track by name of bone
 	const idleAnimation = THREE.AnimationClip.findByName(animations, 'idle');
-	let indexes_neck: number[] = getIndexesOfBone(NAME_NECK, idleAnimation.tracks);
-	let indexes_waist: number[] = getIndexesOfBone(NAME_SPINE, idleAnimation.tracks);
-	console.log(indexes_neck.map(index => idleAnimation.tracks[index]))
-	console.log(indexes_neck)
+	let indexes_neck: number[] = getIndexesOfBonesFromTracks(NAME_NECK, idleAnimation.tracks);
+	let indexes_waist: number[] = getIndexesOfBonesFromTracks(NAME_SPINE, idleAnimation.tracks);
 
+	// Remove trakcs of neck and waist from animation clip
 	idleAnimation.tracks.splice(indexes_neck[0], indexes_neck.length);
 	idleAnimation.tracks.splice(indexes_waist[0] - indexes_neck.length, indexes_waist.length);
 
+	// play action
 	useEffect(() => {
 		actions.idle?.play();
+	});
+
+	// add event listener 
+	document.addEventListener('mousemove', function (e: MouseEvent) {
+		const mousecoords = getMousePosition(e);
+
+		if (neck && waist) {
+			moveJoint(mousecoords, neck, 50);
+			moveJoint(mousecoords, waist, 30);
+		};
 	});
 
 	return (
