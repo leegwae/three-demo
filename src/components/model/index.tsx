@@ -7,7 +7,8 @@ import React, { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import { getMousePosition, moveJoint } from '../../functions';
+import { setPose } from '../../functions';
+import { Vector3 } from 'three';
 
 type GLTFResult = GLTF & {
 	nodes: {
@@ -24,61 +25,14 @@ type GLTFResult = GLTF & {
 // type ActionName = 'agree' | 'headShake' | 'idle' | 'run' | 'sad_pose' | 'sneak_pose' | 'walk';
 // type GLTFActions = Record<ActionName, THREE.AnimationAction>;
 
-const NAME_SPINE: string = 'mixamorigSpine';
-const NAME_NECK: string = 'mixamorigNeck';
-
-const getIndexesOfBoneFromTracks = (bone: string, tracks: THREE.KeyframeTrack[]) => {
-	const indexes: number[] = [];
-	tracks.forEach((track, idx) => {
-		if (track.name.indexOf(bone) !== -1) {
-			indexes.push(idx);
-		};
-	});
-
-	return indexes;
-};
-
 export default function Model(props: JSX.IntrinsicElements['group']) {
 	// reference of model
 	const group = useRef<THREE.Group>();
 	// get elements of GLTF file
-	const { nodes, materials, animations } = useGLTF('/Xbot.glb') as GLTFResult;
-	// get actions from animations
-	const { actions } = useAnimations<THREE.AnimationClip>(animations, group);
+	const { nodes, materials } = useGLTF('/Xbot.glb') as GLTFResult;
 
-	// Bone object of neck and waist
-	let neck: THREE.Bone;
-	let waist: THREE.Bone;
-
-	// get bones of neck and waist
-	nodes.Beta_Joints.skeleton.bones.forEach(joint => {
-		if (joint.name === NAME_NECK) neck = joint;
-		if (joint.name === NAME_SPINE) waist = joint;
-	});
-
-	// get index of track by name of bone
-	const idleAnimation = THREE.AnimationClip.findByName(animations, 'idle');
-	let indexes_neck: number[] = getIndexesOfBoneFromTracks(NAME_NECK, idleAnimation.tracks);
-	let indexes_waist: number[] = getIndexesOfBoneFromTracks(NAME_SPINE, idleAnimation.tracks);
-
-	// Remove trakcs of neck and waist from animation clip
-	idleAnimation.tracks.splice(indexes_neck[0], indexes_neck.length);
-	idleAnimation.tracks.splice(indexes_waist[0] - indexes_neck.length, indexes_waist.length);
-
-	// play action
-	useEffect(() => {
-		actions.idle?.play();
-	});
-
-	// add event listener 
-	document.addEventListener('mousemove', function (e: MouseEvent) {
-		const mousecoords = getMousePosition(e);
-
-		if (neck && waist) {
-			moveJoint(mousecoords, neck, 50);
-			moveJoint(mousecoords, waist, 30);
-		};
-	});
+	// set rotations of bones
+	setPose(-1, nodes.Beta_Joints.skeleton.bones);
 
 	return (
 		<group ref={group} {...props} dispose={null}>

@@ -11,7 +11,7 @@ const ASPECT: number = SCREEN_WIDTH / SCREEN_HEIGHT;
 const NEAR: number = 1;
 const FAR: number = 10000;
 
-const ORIGIN: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+const ORIGIN: THREE.Vector3 = new THREE.Vector3(0, 0.5, 0);
 const CAMERA_POSITION: THREE.Vector3 = new THREE.Vector3(-3, 2, 5);
 
 interface SceneProps { children?: ReactFragment }

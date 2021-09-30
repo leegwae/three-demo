@@ -1,8 +1,5 @@
 import * as THREE from 'three';
 
-export const toVector3 = (position: number[]): THREE.Vector3 => new THREE.Vector3(...position);
-export const toEuler = (position: number[]): THREE.Euler => new THREE.Euler(...position);
-
 export const dumpObject = (obj: any, lines: string[] = [], isLast = true, prefix: string = '') => {
 	const localPrefix = isLast ? '└─' : '├─';
 	lines.push(`${prefix}${prefix ? localPrefix : ''}${obj.name || '*no-name*'} [${obj.type}]`);
@@ -15,55 +12,57 @@ export const dumpObject = (obj: any, lines: string[] = [], isLast = true, prefix
 	return lines;
 }
 
-// 참고: https://tympanus.net/codrops/2019/10/14/how-to-create-an-interactive-3d-character-with-three-js/
-function getMouseDegrees(x: number, y: number, degreeLimit: number) {
-	let dx = 0,
-		dy = 0,
-		xdiff,
-		xPercentage,
-		ydiff,
-		yPercentage;
+// ========================== [ manage model ] ========================================
+const PREFIX = 'mixamorig';
+interface BONES { [boneName:string]: number[] }
 
-	let w = { x: window.innerWidth, y: window.innerHeight };
+/*
+	-1번: 기본(십자가)
+	1번: 대자
+	2번: 손바닥 챱
+*/
+const POSE: BONES[] = [
+	{
+		'LeftUpLeg': [0, 0, 20],
+		'RightUpLeg': [0, 0, -20],
+	},
+	{
+		'LeftShoulder': [0, 0, 70],
+		'RightShoulder': [0, 0, -70],
+		'LeftArm': [180, 0, 0],
+		'RightArm': [180, 0, 0],
+		'LeftForeArm': [0, 0, -40],
+		'RightForeArm': [0, 0, 40],
+		'LeftUpLeg': [0, 0, 20],
+		'RightUpLeg': [0, 0, -20],
+	}
+];
 
-	// Left (Rotates neck left between 0 and -degreeLimit)
+const moveJoint = (joint: THREE.Bone, degree: THREE.Vector3) => {
+	joint.rotation.x = THREE.MathUtils.degToRad(degree.x);
+	joint.rotation.y = THREE.MathUtils.degToRad(degree.y);
+	joint.rotation.z = THREE.MathUtils.degToRad(degree.z);
+};
 
-	// 1. If cursor is in the left half of screen
-	if (x <= w.x / 2) {
-		// 2. Get the difference between middle of screen and cursor position
-		xdiff = w.x / 2 - x;
-		// 3. Find the percentage of that difference (percentage toward edge of screen)
-		xPercentage = (xdiff / (w.x / 2)) * 100;
-		// 4. Convert that to a percentage of the maximum rotation we allow for the neck
-		dx = ((degreeLimit * xPercentage) / 100) * -1;
-	};
-	// Right (Rotates neck right between 0 and degreeLimit)
-	if (x >= w.x / 2) {
-		xdiff = x - w.x / 2;
-		xPercentage = (xdiff / (w.x / 2)) * 100;
-		dx = (degreeLimit * xPercentage) / 100;
-	};
-	// Up (Rotates neck up between 0 and -degreeLimit)
-	if (y <= w.y / 2) {
-		ydiff = w.y / 2 - y;
-		yPercentage = (ydiff / (w.y / 2)) * 100;
-		// Note that I cut degreeLimit in half when she looks up
-		dy = (((degreeLimit * 0.5) * yPercentage) / 100) * -1;
-	};
+export const setPose = (idx: number, bones: THREE.Bone[]) => {
+	if (idx === -1) {
+		bones.forEach(joint => {
+			moveJoint(joint, new THREE.Vector3(0, 0, 0));
+		});
 
-	// Down (Rotates neck down between 0 and degreeLimit)
-	if (y >= w.y / 2) {
-		ydiff = y - w.y / 2;
-		yPercentage = (ydiff / (w.y / 2)) * 100;
-		dy = (degreeLimit * yPercentage) / 100;
+		return;
 	};
 
-	return { x: dx, y: dy };
-}
-export interface mouse { x: number, y: number };
-export const getMousePosition = (e: MouseEvent) => ({ x: e.clientX, y: e.clientY });
-export const moveJoint = (mouse: mouse, joint: THREE.Bone, degreeLimit: number) => {
-	const degrees = getMouseDegrees(mouse.x, mouse.y, degreeLimit);
-	joint.rotation.y = THREE.MathUtils.degToRad(degrees.x);
-	joint.rotation.x = THREE.MathUtils.degToRad(degrees.y);
+	const pose = POSE[idx];
+	const names = Object.keys(pose);
+
+	// init rotation of joints
+	bones.forEach(joint => {
+		const name = joint.name.split(PREFIX)[1];
+		const degree = (names.indexOf(name) === -1) ?
+			new THREE.Vector3(0, 0, 0) :
+			new THREE.Vector3(...pose[name])
+	
+		moveJoint(joint, degree);
+	});
 };
