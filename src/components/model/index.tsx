@@ -27,7 +27,7 @@ type GLTFResult = GLTF & {
 const NAME_SPINE: string = 'mixamorigSpine';
 const NAME_NECK: string = 'mixamorigNeck';
 
-const getIndexesOfBonesFromTracks = (bone: string, tracks: THREE.KeyframeTrack[]) => {
+const getIndexesOfBoneFromTracks = (bone: string, tracks: THREE.KeyframeTrack[]) => {
 	const indexes: number[] = [];
 	tracks.forEach((track, idx) => {
 		if (track.name.indexOf(bone) !== -1) {
@@ -58,8 +58,8 @@ export default function Model(props: JSX.IntrinsicElements['group']) {
 
 	// get index of track by name of bone
 	const idleAnimation = THREE.AnimationClip.findByName(animations, 'idle');
-	let indexes_neck: number[] = getIndexesOfBonesFromTracks(NAME_NECK, idleAnimation.tracks);
-	let indexes_waist: number[] = getIndexesOfBonesFromTracks(NAME_SPINE, idleAnimation.tracks);
+	let indexes_neck: number[] = getIndexesOfBoneFromTracks(NAME_NECK, idleAnimation.tracks);
+	let indexes_waist: number[] = getIndexesOfBoneFromTracks(NAME_SPINE, idleAnimation.tracks);
 
 	// Remove trakcs of neck and waist from animation clip
 	idleAnimation.tracks.splice(indexes_neck[0], indexes_neck.length);
